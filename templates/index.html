@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Image Upload and Camera Capture</title>
+<style>
+    /* CSS for styling */
+    #video-container {
+        margin-bottom: 20px;
+    }
+    #captured-image, #input-image {
+        display: none;
+        height: 300px;
+        width: 400px;
+        margin-bottom: 20px;
+    }
+</style>
+</head>
+<body>
+    <form id="image-form" action="http://127.0.0.1:5000/fid" method="POST" enctype="multipart/form-data">
+        <div id="video-container">
+            <video id="video" width="400" height="300" autoplay></video>
+        </div>
+        <button type="button" id="start-camera">Start Camera</button>
+        <button type="button" id="capture">Capture</button>
+        <img id="captured-image" src="#" alt="Captured Image">
+        <input type="file" accept="image/*" id="file-input" name="image">
+        <img id="input-image" src="#" alt="input Image">
+        <input type="hidden" id="captured-image-data" name="captured_image_data">
+        <button type="submit" id="submit">Submit</button>
+    </form>
+
+    <script>
+        // JavaScript for camera functionality
+        const video = document.getElementById('video');
+        const startCameraBtn = document.getElementById('start-camera');
+        const captureBtn = document.getElementById('capture');
+        const fileInput = document.getElementById('file-input');
+        const capturedImage = document.getElementById('captured-image');
+        const inputImage = document.getElementById('input-image');
+        const capturedImageDataInput = document.getElementById('captured-image-data');
+        const imageForm = document.getElementById('image-form');
+
+        let stream;
+
+        // Function to start the camera
+        async function startCamera() {
+            try {
+                stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                video.srcObject = stream;
+                console.log('Camera started');
+            } catch (err) {
+                console.error('Error accessing the camera: ', err);
+            }
+        }
+
+        // Function to capture image
+        function captureImage() {
+            const canvas = document.createElement('canvas');
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
+            const imageDataURL = canvas.toDataURL('image/jpeg');
+            capturedImage.src = imageDataURL;
+            capturedImage.style.display = 'block';
+            video.style.display = 'none';
+            capturedImageDataInput.value = imageDataURL;
+            console.log('Image Captured and camera stopped');
+            stopCamera();
+        }
+
+        // Function to stop the camera
+        function stopCamera() {
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+            }
+        }
+
+        // Event listeners
+        startCameraBtn.addEventListener('click', startCamera);
+        captureBtn.addEventListener('click', captureImage);
+        fileInput.addEventListener('change', function(event) {
+            const file = event.target.files[0];
+            inputImage.src = URL.createObjectURL(file);
+            inputImage.style.display = 'block';
+            console.log('Image uploaded');
+        });
+
+    </script>
+</body>
+</html>
